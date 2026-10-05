@@ -1,5 +1,3 @@
-
-
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -10,48 +8,47 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-/**
- * Servlet implementation class Servlet2
- */
 @WebServlet("/Servlet2")
 public class Servlet2 extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public Servlet2() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		try {
-
-			response.setContentType("text/html");
-			PrintWriter out = response.getWriter();
-
-			HttpSession session = request.getSession(false);
-			String n = (String) session.getAttribute("uname");
-			out.print("Hello " + n);
-
-			out.close();
-
-		} catch (Exception e) {
-			System.out.println(e);
-		}
+	public Servlet2() {
+		super();
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		// La caché desactivada evita que "atrás" muestre la página vieja
+		response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+		response.setHeader("Pragma", "no-cache");
+		response.setDateHeader("Expires", 0);
+
+		// false = no crear sesión nueva si no existe
+		HttpSession session = request.getSession(false);
+
+		// Página protegida: sin sesión o sin usuario, se obliga a iniciar sesión
+		if (session == null || session.getAttribute("uname") == null) {
+			response.sendRedirect("index.html");
+			return;
+		}
+
+		response.setContentType("text/html; charset=UTF-8");
+		PrintWriter out = response.getWriter();
+
+		String n = (String) session.getAttribute("uname");
+		out.print("<h3>Hello " + escapar(n) + "</h3>");
+		out.print("<a href='Logout'>Cerrar sesión</a> | ");
+		out.print("<a href='Logout?todas=true'>Cerrar todas las sesiones</a>");
+		out.close();
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		doGet(request, response);
 	}
 
+	private String escapar(String s) {
+		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+	}
 }
